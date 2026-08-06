@@ -28,8 +28,11 @@ jobs:
           java-version: '17'
           cache: gradle
 
+      - name: Ensure Gradle wrapper is executable
+        run: chmod +x ./gradlew
+
       - name: Build jar
-        run: ./build.sh
+        run: ./gradlew clean build
 
       - name: Determine release tag
         id: release_tag
@@ -89,7 +92,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: NilLoaderInstaller-${{ steps.release_tag.outputs.version }}
-          path: dist/NilLoaderInstaller.jar
+          path: build/libs/NilLoaderInstaller.jar
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
