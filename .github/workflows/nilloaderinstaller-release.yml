@@ -92,7 +92,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: NilLoaderInstaller-${{ steps.release_tag.outputs.version }}
-          path: build/libs/NilLoaderInstaller.jar
+          path: build/libs/NilLoaderInstaller-*.jar
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
@@ -101,6 +101,6 @@ jobs:
           tag_name: ${{ steps.release_tag.outputs.tag }}
           name: NilLoaderInstaller ${{ steps.release_tag.outputs.tag }}
           body_path: release-notes.md
-          files: build/libs/NilLoaderInstaller.jar
+          files: build/libs/NilLoaderInstaller-*.jar
           draft: false
           prerelease: false

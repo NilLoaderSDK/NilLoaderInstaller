@@ -11,6 +11,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Duration;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 public final class Downloader {
     private Downloader() {}
@@ -18,6 +21,7 @@ public final class Downloader {
     public static void downloadNilLoader(Path destination) throws IOException, InterruptedException {
         Files.createDirectories(destination.toAbsolutePath().getParent());
         Path temp = destination.resolveSibling(destination.getFileName() + ".part");
+        Files.deleteIfExists(temp);
 
         HttpClient client = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(15))
@@ -34,14 +38,42 @@ public final class Downloader {
             Files.deleteIfExists(temp);
             throw new IOException("NilLoader download failed: HTTP " + response.statusCode());
         }
-        if (Files.size(temp) < 1024) {
+
+        try {
+            validateJavaAgentJar(temp);
+        } catch (IOException e) {
             Files.deleteIfExists(temp);
-            throw new IOException("Downloaded NilLoader file is unexpectedly small");
+            throw e;
         }
+
         try {
             Files.move(temp, destination, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         } catch (IOException atomicNotSupported) {
             Files.move(temp, destination, StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+
+    static void validateJavaAgentJar(Path jar) throws IOException {
+        if (!Files.isRegularFile(jar) || Files.size(jar) < 1024) {
+            throw new IOException("Downloaded NilLoader file is unexpectedly small or missing");
+        }
+
+        try (JarFile jf = new JarFile(jar.toFile())) {
+            Manifest manifest = jf.getManifest();
+            if (manifest == null) {
+                throw new IOException("Downloaded NilLoader JAR has no manifest");
+            }
+            Attributes attrs = manifest.getMainAttributes();
+            String premain = attrs.getValue("Premain-Class");
+            if (premain == null || premain.isBlank()) {
+                throw new IOException("Downloaded file is not a Java agent (Premain-Class is missing)");
+            }
+            String classEntry = premain.replace('.', '/') + ".class";
+            if (jf.getJarEntry(classEntry) == null) {
+                throw new IOException("Downloaded Java agent is incomplete: " + classEntry + " is missing");
+            }
+        } catch (java.util.zip.ZipException e) {
+            throw new IOException("Downloaded NilLoader file is not a valid JAR", e);
         }
     }
 }

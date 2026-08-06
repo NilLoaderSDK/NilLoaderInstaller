@@ -139,17 +139,24 @@ public final class InstallerFrame extends JFrame {
         int row = table.convertRowIndexToModel(viewRow);
         InstallTarget target = model.get(row);
 
-        String note = target.launcherType().name().equals("OFFICIAL")
-                ? "For the official Minecraft Launcher, close the launcher before continuing. The selected installation will be cloned; the original will not be modified."
-                : "Close Prism/PolyMC/MultiMC before continuing so it reloads the component files cleanly.";
+        boolean repair = target.installed();
+        String note;
+        if (target.launcherType().name().equals("OFFICIAL")) {
+            note = repair
+                    ? "Close the Minecraft Launcher before continuing. This repairs the selected NilLoader installation in place and keeps a backup of the launcher profile database."
+                    : "Close the Minecraft Launcher before continuing. The selected installation will be cloned; the original will not be modified.";
+        } else {
+            note = "Close Prism/PolyMC/MultiMC before continuing so it reloads the component files cleanly.";
+        }
+        String action = repair ? "Repair" : "Install";
         int confirm = JOptionPane.showConfirmDialog(this,
-                "Install NilLoader " + AppInfo.NILLOADER_VERSION + " into:\n\n"
+                action + " NilLoader " + AppInfo.NILLOADER_VERSION + " in:\n\n"
                         + target.displayName() + "\nMinecraft " + target.minecraftVersion() + "\n"
                         + target.gameDir() + "\n\n" + note,
-                "Install NilLoader", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+                action + " NilLoader", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (confirm != JOptionPane.OK_OPTION) return;
 
-        setBusy(true, "Installing NilLoader into " + target.displayName() + "…");
+        setBusy(true, (target.installed() ? "Repairing" : "Installing") + " NilLoader in " + target.displayName() + "…");
         new SwingWorker<InstallResult, Void>() {
             @Override protected InstallResult doInBackground() throws Exception {
                 return InstallerService.install(target);
@@ -158,11 +165,11 @@ public final class InstallerFrame extends JFrame {
             @Override protected void done() {
                 try {
                     InstallResult result = get();
-                    status.setText("Installed successfully.");
+                    status.setText(target.installed() ? "Repaired successfully." : "Installed successfully.");
                     Object[] options = {"Done", "Open nilmods folder"};
                     int selected = JOptionPane.showOptionDialog(InstallerFrame.this,
                             result.message() + "\n\nPut NilLoader mods in:\n" + result.nilmodsDirectory(),
-                            "NilLoader installed", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE,
+                            target.installed() ? "NilLoader repaired" : "NilLoader installed", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE,
                             null, options, options[0]);
                     if (selected == 1) openFolder(result.nilmodsDirectory());
                     refreshTargets();
@@ -192,7 +199,15 @@ public final class InstallerFrame extends JFrame {
     }
 
     private void updateInstallButton() {
-        installButton.setEnabled(!progress.isVisible() && table.getSelectedRow() >= 0);
+        int viewRow = table.getSelectedRow();
+        boolean selected = viewRow >= 0;
+        installButton.setEnabled(!progress.isVisible() && selected);
+        if (selected) {
+            int row = table.convertRowIndexToModel(viewRow);
+            installButton.setText(model.get(row).installed() ? "Repair NilLoader" : "Install NilLoader");
+        } else {
+            installButton.setText("Install NilLoader");
+        }
     }
 
     private void showError(String title, Throwable e) {

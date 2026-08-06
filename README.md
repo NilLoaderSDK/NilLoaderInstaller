@@ -6,7 +6,7 @@ The goal is to turn the current manual Java-agent setup into a normal launcher-o
 
 ## Supported launchers
 
-- Minecraft Launcher (official / Mojang, including the Microsoft Store profile database): detects existing installations, clones the selected installation, downloads NilLoader, and adds the required `-javaagent` argument only to the cloned profile.
+- Minecraft Launcher (official / Mojang, including the Microsoft Store profile database): detects existing installations, clones the selected installation, downloads NilLoader as `NilLoader.jar`, and adds the upstream-compatible `-javaagent:NilLoader.jar` argument only to the cloned profile.
 - Prism Launcher
 - PolyMC
 - MultiMC-compatible instances: writes the NilLoader component patch directly into the instance `patches/` directory.
@@ -14,8 +14,9 @@ The goal is to turn the current manual Java-agent setup into a normal launcher-o
 ## Safety behavior
 
 - The official launcher profile database is backed up before editing.
-- Existing official installations are not modified; a separate `+ NilLoader` installation is created.
+- Existing non-NilLoader official installations are not modified; a separate `+ NilLoader` installation is created. Existing NilLoader profiles can be repaired in place.
 - Existing Prism/PolyMC NilLoader patches are backed up before replacement.
+- Downloaded NilLoader agents are validated as JARs and checked for a valid `Premain-Class` before launcher configuration is changed.
 - Nilmods can be placed in the generated `nilmods/` directory.
 
 ## Requirements
@@ -29,7 +30,7 @@ With Gradle:
 
 ```bash
 gradle clean jar
-java -jar build/libs/NilLoaderInstaller.jar
+java -jar build/libs/NilLoaderInstaller-0.1.1.jar
 ```
 
 No third-party runtime dependencies are used.
@@ -48,7 +49,7 @@ Windows:
 build.bat
 ```
 
-The standalone jar is written to `dist/NilLoaderInstaller.jar`.
+The standalone jar is written to `dist/NilLoaderInstaller-0.1.1.jar`.
 
 ## NilLoader version
 
@@ -57,7 +58,7 @@ The installer currently targets NilLoader `1.3.6`, matching the current official
 ## Project layout
 
 - `LauncherDetector` — discovers official and MultiMC-family installations/instances.
-- `OfficialLauncherInstaller` — clones an official launcher profile and injects the Java agent argument.
+- `OfficialLauncherInstaller` — clones or repairs an official launcher profile and injects the canonical relative Java agent argument.
 - `PrismInstaller` — installs the NilLoader component patch.
 - `Downloader` — downloads the NilLoader agent for the official launcher flow.
 - `Json` — tiny dependency-free JSON reader/writer used for launcher configuration.
