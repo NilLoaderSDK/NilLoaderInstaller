@@ -32,7 +32,7 @@ With Gradle:
 
 ```bash
 gradle clean jar
-java -jar build/libs/NilLoaderInstaller-0.1.1+unofficial.jar
+java -jar build/libs/NilLoaderInstaller-0.1.2+unofficial.jar
 ```
 
 No third-party runtime dependencies are used.
