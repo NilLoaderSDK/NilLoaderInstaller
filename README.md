@@ -2,6 +2,8 @@
 
 A small cross-platform installer for [NilLoader](https://git.sleeping.town/Nil/NilLoader).
 
+> **This is an unofficial build** It is not affiliated with or endorsed by the original NilLoader project.
+
 The goal is to turn the current manual Java-agent setup into a normal launcher-oriented install flow.
 
 ## Supported launchers
@@ -30,7 +32,7 @@ With Gradle:
 
 ```bash
 gradle clean jar
-java -jar build/libs/NilLoaderInstaller-0.1.1.jar
+java -jar build/libs/NilLoaderInstaller-0.1.1+unofficial.jar
 ```
 
 No third-party runtime dependencies are used.
@@ -49,7 +51,7 @@ Windows:
 build.bat
 ```
 
-The standalone jar is written to `dist/NilLoaderInstaller-0.1.1.jar`.
+The standalone jar is written to `dist/NilLoaderInstaller-0.1.1+unofficial.jar`.
 
 ## NilLoader version
 

@@ -47,6 +47,17 @@ jobs:
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
 
+      - name: Verify built jar matches expected version
+        shell: bash
+        run: |
+          VERSION="${{ steps.release_tag.outputs.version }}"
+          EXPECTED="build/libs/NilLoaderInstaller-${VERSION}+unofficial.jar"
+          if [[ ! -f "${EXPECTED}" ]]; then
+            echo "::error::Expected jar not found: ${EXPECTED}"
+            ls -la build/libs/
+            exit 1
+          fi
+
       - name: Extract release notes from CHANGE.md
         id: notes
         shell: bash
@@ -91,7 +102,7 @@ jobs:
       - name: Upload jar artifact
         uses: actions/upload-artifact@v4
         with:
-          name: NilLoaderInstaller-${{ steps.release_tag.outputs.version }}
+          name: NilLoaderInstaller-${{ steps.release_tag.outputs.version }}+unofficial
           path: build/libs/NilLoaderInstaller-*.jar
 
       - name: Create GitHub Release
@@ -99,7 +110,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.release_tag.outputs.tag }}
-          name: NilLoaderInstaller ${{ steps.release_tag.outputs.tag }}
+          name: NilLoaderInstaller ${{ steps.release_tag.outputs.tag }} (unofficial)
           body_path: release-notes.md
           files: build/libs/NilLoaderInstaller-*.jar
           draft: false
