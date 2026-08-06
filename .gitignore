@@ -1,0 +1,17 @@
+.gradle/
+build/
+dist/
+out/
+*.class
+*.log
+*.jar
+*.war
+*.ear
+*.iml
+*.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Gradle wrapper jars are usually committed, but you can ignore local wrapper downloads if desired
+# .gradle/wrapper/dists/
