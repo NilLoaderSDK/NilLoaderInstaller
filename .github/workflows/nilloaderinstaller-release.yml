@@ -101,6 +101,6 @@ jobs:
           tag_name: ${{ steps.release_tag.outputs.tag }}
           name: NilLoaderInstaller ${{ steps.release_tag.outputs.tag }}
           body_path: release-notes.md
-          files: dist/NilLoaderInstaller.jar
+          files: build/libs/NilLoaderInstaller.jar
           draft: false
           prerelease: false
